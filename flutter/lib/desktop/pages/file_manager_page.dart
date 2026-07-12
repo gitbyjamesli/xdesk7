@@ -1122,7 +1122,19 @@ class _FileManagerViewState extends State<FileManagerView> {
                   onTap: () {
                     controller.renameAction(entry, isLocal);
                   },
-                )
+                ),
+              if (!entry.isDrive)
+                mod_menu.PopupMenuItem(
+                  child: Text(translate("Send")),
+                  height: CustomPopupMenuTheme.height,
+                  onTap: () {
+                    final otherSideData =
+                        controller.getOtherSideDirectoryData();
+                    final singleItem = SelectedItems(isLocal: isLocal);
+                    singleItem.add(entry);
+                    controller.sendFiles(singleItem, otherSideData);
+                  },
+                ),
             ];
             if (items.isNotEmpty) {
               rightClickEntry.value = entry;
