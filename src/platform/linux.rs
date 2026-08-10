@@ -2017,8 +2017,17 @@ pub fn set_autostart(enabled: bool) -> bool {
             }
         }
         let app_name = crate::get_app_name();
+        // When installed (e.g. systemd service manages the background server), start in
+        // tray-only mode. For portable/uninstalled mode there is no service, and `--tray`
+        // would only show a hidden tray icon without starting the server or any window.
+        // Launch normally (no args) so the embedded server and UI are started instead.
+        let exec = if is_installed() {
+            format!("Exec={exe} --tray\n")
+        } else {
+            format!("Exec={exe}\n")
+        };
         let content = format!(
-            "[Desktop Entry]\nType=Application\nName={app_name}\nComment=Start {app_name} on login\nExec={exe} --tray\nNoDisplay=false\nX-GNOME-Autostart-enabled=true\n"
+            "[Desktop Entry]\nType=Application\nName={app_name}\nComment=Start {app_name} on login\n{exec}NoDisplay=false\nX-GNOME-Autostart-enabled=true\n"
         );
         if let Err(e) = std::fs::write(&file, content) {
             log::error!("Failed to write autostart file: {e}");

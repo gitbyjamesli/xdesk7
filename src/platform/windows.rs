@@ -1866,10 +1866,18 @@ pub fn set_autostart(enabled: bool) -> bool {
                 return false;
             }
         };
-        // Quote the path to handle spaces, launch in background/tray mode.
-        let value = format!("\"{exe}\" --tray");
+        // When the server service is running (installed mode), the incoming server runs
+        // as a Windows service, so we can auto-start in background tray mode (`--tray`).
+        // For portable / non-installed mode there is no service, and `--tray` only shows a
+        // hidden tray icon without starting the server or any window. In that case launch
+        // the app normally (no args) so the embedded server and UI are started.
+        let cmd = if is_self_service_running() {
+            format!("\"{exe}\" --tray")
+        } else {
+            format!("\"{exe}\"")
+        };
         hkcu.create_subkey(REG_RUN_KEY)
-            .and_then(|(key, _)| key.set_value(&app_name, &value))
+            .and_then(|(key, _)| key.set_value(&app_name, &cmd))
     } else {
         hkcu.create_subkey(REG_RUN_KEY)
             .and_then(|(key, _)| key.delete_value(&app_name))
