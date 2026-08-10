@@ -1,0 +1,16 @@
+win版本运行时任务名称是rustdesk ，可以改成xdesk吗，编译脚本是.github\workflows\flutter-nightly.yml
+
+==================
+win 版本运行后默认目录C:\Users\Admin\AppData\Local\rustdesk，尝试改为C:\Users\Admin\AppData\Local\xdesk
+
+============
+经测试，xdesk-1.4.6-x86_64.deb 在ubuntu 下安装后 /usr/share/xdesk/目录下生成执行文件名是rustdesk，并不是xdesk；/usr/bin/下没有找到xdesk
+
+======================
+win 版本 主要界面代码在D:\work\rustdesk-prj\github_prj\xdesk7\flutter 下，这是文件传输界面，选中某个文件右键弹出菜单只有”重命名“，添加“发送”菜单并实现相应功能
+
+============
+1.win 版本以及 linux x86_64 版本 主要界面代码在flutter 文件夹下；重点分析、理解 flutter 下各界面功能
+
+Flutter 界面 ：在 设置界面->常规 下，添加 开机启动设置，并实现相应功能
+
