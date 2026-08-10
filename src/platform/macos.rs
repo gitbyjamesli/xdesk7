@@ -811,6 +811,15 @@ pub fn is_installed() -> bool {
     false
 }
 
+// Auto-start is not yet supported on macOS (no-op stubs for FFI compatibility).
+pub fn get_autostart() -> bool {
+    false
+}
+
+pub fn set_autostart(_enabled: bool) -> bool {
+    false
+}
+
 pub fn quit_gui() {
     unsafe {
         let () = msg_send!(NSApp(), terminate: nil);

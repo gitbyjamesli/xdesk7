@@ -2232,6 +2232,22 @@ pub fn main_is_installed() -> SyncReturn<bool> {
     SyncReturn(is_installed())
 }
 
+/// Query whether the app is set to launch automatically on system startup.
+pub fn main_get_autostart() -> SyncReturn<bool> {
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    let result = crate::platform::get_autostart();
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    let result = false;
+    SyncReturn(result)
+}
+
+/// Enable or disable launching the app automatically on system startup.
+pub fn main_set_autostart(enabled: bool) -> SyncReturn<()> {
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    crate::platform::set_autostart(enabled);
+    SyncReturn(())
+}
+
 pub fn main_init_input_source() -> SyncReturn<()> {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     crate::keyboard::input_source::init_input_source();

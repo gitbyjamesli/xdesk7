@@ -1842,6 +1842,47 @@ pub fn is_installed() -> bool {
     std::fs::metadata(exe).is_ok()
 }
 
+// Auto-start on login: registry key HKCU\Software\Microsoft\Windows\CurrentVersion\Run
+const REG_RUN_KEY: &str = r"Software\Microsoft\Windows\CurrentVersion\Run";
+
+pub fn get_autostart() -> bool {
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    if let Ok(key) = hkcu.open_subkey(REG_RUN_KEY) {
+        if let Ok(value) = key.get_value::<String, _>(crate::get_app_name()) {
+            return !value.is_empty();
+        }
+    }
+    false
+}
+
+pub fn set_autostart(enabled: bool) -> bool {
+    let hkcu = RegKey::predef(HKEY_CURRENT_USER);
+    let app_name = crate::get_app_name();
+    let result = if enabled {
+        let exe = match std::env::current_exe() {
+            Ok(p) => p.to_string_lossy().to_string(),
+            Err(e) => {
+                log::error!("Failed to get current exe path for autostart: {e}");
+                return false;
+            }
+        };
+        // Quote the path to handle spaces, launch in background/tray mode.
+        let value = format!("\"{exe}\" --tray");
+        hkcu.create_subkey(REG_RUN_KEY)
+            .and_then(|(key, _)| key.set_value(&app_name, &value))
+    } else {
+        hkcu.create_subkey(REG_RUN_KEY)
+            .and_then(|(key, _)| key.delete_value(&app_name))
+    };
+    match result {
+        Ok(_) => true,
+        Err(e) => {
+            log::error!("Failed to set autostart to {enabled}: {e}");
+            false
+        }
+    }
+}
+
 pub fn get_reg(name: &str) -> String {
     let (subkey, _, _, _) = get_install_info();
     get_reg_of(&subkey, name)

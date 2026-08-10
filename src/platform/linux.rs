@@ -1984,7 +1984,65 @@ fn check_if_stop_service() {
     }
 }
 
+// Auto-start on login: `~/.config/autostart/{app_name}.desktop`.
+fn get_autostart_file() -> Option<PathBuf> {
+    let home = get_home_dir_trusted()?;
+    let app_name = crate::get_app_name().to_lowercase();
+    Some(home.join(".config").join("autostart").join(format!("{app_name}.desktop")))
+}
+
+pub fn get_autostart() -> bool {
+    get_autostart_file()
+        .map(|file| file.exists())
+        .unwrap_or(false)
+}
+
+pub fn set_autostart(enabled: bool) -> bool {
+    let Some(file) = get_autostart_file() else {
+        log::error!("Failed to get trusted home directory for autostart");
+        return false;
+    };
+    if enabled {
+        let exe = match std::env::current_exe() {
+            Ok(p) => p.to_string_lossy().to_string(),
+            Err(e) => {
+                log::error!("Failed to get current exe path for autostart: {e}");
+                return false;
+            }
+        };
+        if let Some(parent) = file.parent() {
+            if let Err(e) = std::fs::create_dir_all(parent) {
+                log::error!("Failed to create autostart directory: {e}");
+                return false;
+            }
+        }
+        let app_name = crate::get_app_name();
+        let content = format!(
+            "[Desktop Entry]\nType=Application\nName={app_name}\nComment=Start {app_name} on login\nExec={exe} --tray\nNoDisplay=false\nX-GNOME-Autostart-enabled=true\n"
+        );
+        if let Err(e) = std::fs::write(&file, content) {
+            log::error!("Failed to write autostart file: {e}");
+            return false;
+        }
+        true
+    } else {
+        match std::fs::remove_file(&file) {
+            Ok(_) => true,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => true,
+            Err(e) => {
+                log::error!("Failed to remove autostart file: {e}");
+                false
+            }
+        }
+    }
+}
+
 pub fn check_autostart_config() -> ResultType<()> {
+    // If the user has opted into "Start on boot", keep the autostart entry intact.
+    // Otherwise clean it up (see issue #4863).
+    if get_autostart() {
+        return Ok(());
+    }
     // SECURITY: Use trusted home directory lookup via getpwuid instead of $HOME env var
     // to prevent confused-deputy attacks where an attacker manipulates environment variables.
     let home = match get_home_dir_trusted() {

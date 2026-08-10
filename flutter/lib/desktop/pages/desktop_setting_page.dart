@@ -416,6 +416,7 @@ class _GeneralState extends State<_General> {
       children: [
         if (!isWeb) service(),
         theme(),
+        if (!isWeb) autostart(),
         _Card(title: 'Language', children: [language()]),
         if (!isWeb) hwcodec(),
         if (!isWeb) audio(context),
@@ -424,6 +425,22 @@ class _GeneralState extends State<_General> {
         other()
       ],
     ).marginOnly(bottom: _kListViewBottomMargin);
+  }
+
+  /// Whether the app launches automatically on system startup.
+  Widget autostart() {
+    return _Card(title: 'Start on boot', children: [
+      _OptionCheckBox(
+        context,
+        'Start on boot',
+        kOptionAutoStart,
+        isServer: false,
+        optGetter: () => bind.mainGetAutostart(),
+        optSetter: (key, value) async {
+          bind.mainSetAutostart(enabled: value);
+        },
+      ),
+    ]);
   }
 
   Widget theme() {
