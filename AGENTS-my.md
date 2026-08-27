@@ -23,6 +23,20 @@ flutter 版本编译脚本是.github\workflows\flutter-nightly.yml
   - `libs/enigo/` - Platform-specific keyboard/mouse control
   - `libs/clipboard/` - Cross-platform clipboard implementation
 
+  -中文-------------
+## 文件结构
+- **[libs/hbb_common]: 视频编解码, 配置, tcp/udp 封装, protobuf, 文件传输相关文件系统操作函数, 以及一些其他实用函数
+- **[libs/scrap]: 屏幕截取
+- **[libs/enigo]: 平台相关的鼠标键盘输入
+- **[libs/clipboard]: Windows、Linux、macOS 的文件复制和粘贴实现
+- **[src/ui]: 过时的 Sciter UI（已弃用）
+- **[src/server]: 被控端服务音频、剪切板、输入、视频服务、网络连接的实现
+- **[src/client.rs]: 控制端
+- **[src/rendezvous_mediator.rs]: 与[rustdesk-server]保持UDP通讯, 等待远程连接（通过打洞直连或者中继）
+- **[src/platform]: 平台服务相关代码
+- **[flutter]: 适用于桌面和移动设备的 Flutter 代码
+- **[flutter/web/js]: Flutter Web版本中的Javascript代码
+
 ### 关键 组件
 - **Remote Desktop Protocol**: Custom protocol implemented in `src/rendezvous_mediator.rs` for communicating with rustdesk-server
 - **Screen Capture**: Platform-specific screen capture in `libs/scrap/`

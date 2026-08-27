@@ -8,6 +8,12 @@ import 'package:get/get.dart';
 import '../../common.dart';
 import '../../models/platform_model.dart';
 
+/// Default ID/Relay server configuration for xdesk custom builds.
+/// Used to pre-fill the "ID/Relay Server" dialog when no custom value is set.
+const String kDefaultIdServer = 'xdeskdev.com:21116';
+const String kDefaultRelayServer = 'xdeskdev.com:21117';
+const String kDefaultServerKey = 'CoQBOwob48IBzrXEjYWvR0mBZBW8K2zaAvytboHIn88=';
+
 void _showSuccess() {
   showToast(translate("Successful"));
 }
@@ -70,10 +76,18 @@ void showServerSettingsWithValue(
     OverlayDialogManager dialogManager,
     void Function(VoidCallback)? upSetState) async {
   var isInProgress = false;
-  final idCtrl = TextEditingController(text: serverConfig.idServer);
-  final relayCtrl = TextEditingController(text: serverConfig.relayServer);
+  // Use xdesk defaults when no custom value is configured yet.
+  final idCtrl = TextEditingController(
+      text: serverConfig.idServer.isEmpty
+          ? kDefaultIdServer
+          : serverConfig.idServer);
+  final relayCtrl = TextEditingController(
+      text: serverConfig.relayServer.isEmpty
+          ? kDefaultRelayServer
+          : serverConfig.relayServer);
   final apiCtrl = TextEditingController(text: serverConfig.apiServer);
-  final keyCtrl = TextEditingController(text: serverConfig.key);
+  final keyCtrl = TextEditingController(
+      text: serverConfig.key.isEmpty ? kDefaultServerKey : serverConfig.key);
 
   RxString idServerMsg = ''.obs;
   RxString relayServerMsg = ''.obs;
