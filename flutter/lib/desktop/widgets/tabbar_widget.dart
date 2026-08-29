@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 import 'dart:ui' as ui;
 
@@ -468,6 +469,16 @@ class _DesktopTabState extends State<DesktopTab>
 
     // hide window on close
     if (isMainWindow) {
+      // Ask for confirmation before exiting the program when closing the
+      // main window.
+      if (tabType == DesktopTabType.main) {
+        if (!await mainWindowCloseConfirmDialog()) {
+          return;
+        }
+        bind.mainOnMainWindowClose();
+        exit(0);
+        return;
+      }
       if (rustDeskWinManager.getActiveWindows().contains(kMainWindowId)) {
         await rustDeskWinManager.unregisterActiveWindow(kMainWindowId);
       }
@@ -910,6 +921,29 @@ Future<bool> closeConfirmDialog() async {
         dialogButton("OK", onPressed: submit),
       ],
       onSubmit: submit,
+      onCancel: close,
+    );
+  });
+  return res == true;
+}
+
+/// Show a confirmation dialog when closing the main window.
+/// Returns true if the user confirms to exit the program.
+Future<bool> mainWindowCloseConfirmDialog() async {
+  final res = await gFFI.dialogManager.show<bool>((setState, close, context) {
+    return CustomAlertDialog(
+      title: Row(children: [
+        const Icon(Icons.warning_amber_sharp,
+            color: Colors.redAccent, size: 28),
+        const SizedBox(width: 10),
+        Text(translate('是否退出程序?')),
+      ]),
+      content: Text(translate('是否退出程序?')),
+      actions: [
+        dialogButton('Cancel', onPressed: close, isOutline: true),
+        dialogButton('OK', onPressed: () => close(true)),
+      ],
+      onSubmit: () => close(true),
       onCancel: close,
     );
   });
